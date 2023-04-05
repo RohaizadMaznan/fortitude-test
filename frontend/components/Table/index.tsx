@@ -1,17 +1,18 @@
-import React from "react";
-import ENDPOINTS from "@/api/API";
-import { Breadcrumb } from "@/components/Breadcrumb";
-import Header from "@/components/Header";
-import Table from "@/components/Table";
-import { BREADCRUMB_DATA } from "@/data/breadcrumb.data";
 import {
+  Table as ChakraTable,
+  TableContainer,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
+  useColorModeValue,
   Box,
+  Text,
   Button,
-  Flex,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Heading,
   Input,
   Modal,
   ModalBody,
@@ -21,56 +22,119 @@ import {
   ModalHeader,
   ModalOverlay,
   Textarea,
-  useColorModeValue,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { useSelector } from "react-redux";
-import useSWR from "swr";
-import { getProduct } from "@/store/slices/Product/product.selector";
-import { AddIcon } from "@chakra-ui/icons";
+import React from "react";
+import Pagination from "./pagination";
+import { FormValues } from "@/pages";
 import { useForm } from "react-hook-form";
 import axios from "@/lib/axios";
+import { useRouter } from "next/router";
 
-const fetcher = (url: any) => fetch(url).then((res) => res.json());
+const Table = ({ ...props }) => {
+  const { data, ...rest } = props;
 
-export type FormValues = {
-  code?: string;
-  name?: string;
-  category?: string;
-  brand?: string;
-  type?: string;
-  description?: string;
+  return (
+    <>
+      <Box
+        w="full"
+        maxH={"calc(100vh - 300px)"}
+        bgColor={"white"}
+        borderRadius={"md"}
+        boxShadow={"md"}
+        mt={4}
+        overflow={"auto"}
+      >
+        <TableContainer>
+          <ChakraTable size="md" variant="striped">
+            <Thead>
+              <Tr>
+                <Th>ID</Th>
+                <Th>Code</Th>
+                <Th>Name</Th>
+                <Th>Category</Th>
+                <Th>Brand</Th>
+                <Th>Type</Th>
+                <Th>Description</Th>
+              </Tr>
+            </Thead>
+            <Tbody color={useColorModeValue("gray.800", "white")}>
+              {data.data
+                ? data.data.map((prod: any, index: number) => {
+                    return (
+                      <React.Fragment key={index}>
+                        <Tr>
+                          <Td>
+                            <Text>{prod.id}</Text>
+                          </Td>
+                          <Td>
+                            <EditProduct {...prod} />
+                          </Td>
+                          <Td>
+                            <Text>{prod.name}</Text>
+                          </Td>
+                          <Td>
+                            <Text>{prod.category}</Text>
+                          </Td>
+                          <Td>
+                            <Text>{prod.brand}</Text>
+                          </Td>
+                          <Td>
+                            <Text>{prod.type}</Text>
+                          </Td>
+                          <Td>
+                            <Text isTruncated noOfLines={3}>
+                              {prod.description}
+                            </Text>
+                          </Td>
+                        </Tr>
+                      </React.Fragment>
+                    );
+                  })
+                : ""}
+            </Tbody>
+          </ChakraTable>
+        </TableContainer>
+      </Box>
+      <Pagination data={data} />
+    </>
+  );
 };
 
-export default function Home() {
-  const { currentPage, limit } = useSelector(getProduct);
+const EditProduct = (props: any) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
+  const router = useRouter();
+
   const {
     handleSubmit,
     register,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>();
-
-  const {
-    data: products,
-    error,
-    isLoading,
-  } = useSWR(ENDPOINTS.getProducts(currentPage, limit), fetcher);
+  } = useForm<FormValues>({
+    defaultValues: {
+      code: props.code,
+      name: props.name,
+      category: props.category,
+      brand: props.brand,
+      type: props.type,
+      description: props.description,
+    },
+  });
 
   const onSubmit = (data: FormValues) => {
     axios
-      .post("/api/v1/products", data)
+      .put(`/api/v1/products/${props.id}`, data)
       .then((res) => {
         toast({
-          title: "Product created",
-          description: "The product is now created.",
+          title: "Product updated",
+          description: "The product is now updated.",
           status: "success",
           duration: 9000,
           isClosable: true,
           position: "bottom-right",
         });
+        router.reload(window.location.pathname);
       })
       .catch((err) => {
         console.log("error in request", err);
@@ -87,49 +151,23 @@ export default function Home() {
     onClose();
   };
 
-  if (error) return "An error has occurred.";
-
   return (
     <>
-      <Header title={"List table"} />
-      <Box
-        bg={useColorModeValue("#987EFF", "gray.700")}
-        h="100vh"
-        w="full"
-        color="white"
+      <Text
+        cursor={"pointer"}
+        color={"blue.400"}
+        _hover={{
+          textDecoration: "underline",
+        }}
+        onClick={onOpen}
       >
-        <Flex justifyContent="center">
-          <Flex flexDir="column" gap={5} pt={5} w="calc(100vw - 20%)">
-            <Flex flexDir="column" gap={2}>
-              <Flex justifyContent="space-between" alignItems="end">
-                <Box>
-                  <Heading
-                    size="2xl"
-                    color={useColorModeValue("white", "white")}
-                  >
-                    Products
-                  </Heading>
-                  <Breadcrumb data={BREADCRUMB_DATA} />
-                </Box>
-                <Button
-                  leftIcon={<AddIcon />}
-                  colorScheme="green"
-                  variant="solid"
-                  onClick={onOpen}
-                >
-                  Create
-                </Button>
-              </Flex>
-              {isLoading ? "Loading..." : <Table data={products} />}
-            </Flex>
-          </Flex>
-        </Flex>
-      </Box>
+        {props.code}
+      </Text>
 
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Create New Product</ModalHeader>
+          <ModalHeader>Edit Product</ModalHeader>
           <ModalCloseButton />
           <form onSubmit={handleSubmit(onSubmit)}>
             <ModalBody>
@@ -230,7 +268,7 @@ export default function Home() {
                 isLoading={isSubmitting}
                 type="submit"
               >
-                Save
+                Update
               </Button>
             </ModalFooter>
           </form>
@@ -238,4 +276,6 @@ export default function Home() {
       </Modal>
     </>
   );
-}
+};
+
+export default Table;

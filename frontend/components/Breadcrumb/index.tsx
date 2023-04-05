@@ -23,9 +23,9 @@ export const Breadcrumb = (props: IBreadcrumb) => {
         <ChevronRightIcon color={useColorModeValue("white", "gray.700")} />
       }
     >
-      {props.data.map((breadcrumb) => {
+      {props.data.map((breadcrumb, index) => {
         return (
-          <BreadcrumbItem>
+          <BreadcrumbItem key={index}>
             <BreadcrumbLink href={breadcrumb.url}>
               {breadcrumb.name}
             </BreadcrumbLink>
