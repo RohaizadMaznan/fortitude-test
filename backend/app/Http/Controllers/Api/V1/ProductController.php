@@ -7,15 +7,21 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return ProductResource::collection(Product::all());
+        $productLimit = $request -> limit ?? 25;
+        $productList = Product::paginate($productLimit);
+
+        return response()->json($productList, 200);
+
+        // return ProductResource::collection(Product::all());
     }
 
     /**
