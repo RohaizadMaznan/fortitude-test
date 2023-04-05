@@ -24,6 +24,7 @@ import {
   Textarea,
   useDisclosure,
   useToast,
+  IconButton,
 } from "@chakra-ui/react";
 import React from "react";
 import Pagination from "./pagination";
@@ -31,9 +32,12 @@ import { FormValues } from "@/pages";
 import { useForm } from "react-hook-form";
 import axios from "@/lib/axios";
 import { useRouter } from "next/router";
+import { DeleteIcon } from "@chakra-ui/icons";
 
 const Table = ({ ...props }) => {
   const { data, ...rest } = props;
+  const toast = useToast();
+  const router = useRouter();
 
   return (
     <>
@@ -50,6 +54,7 @@ const Table = ({ ...props }) => {
           <ChakraTable size="md" variant="striped">
             <Thead>
               <Tr>
+                <Th></Th>
                 <Th>ID</Th>
                 <Th>Code</Th>
                 <Th>Name</Th>
@@ -65,6 +70,43 @@ const Table = ({ ...props }) => {
                     return (
                       <React.Fragment key={index}>
                         <Tr>
+                          <Td>
+                            <IconButton
+                              colorScheme="red"
+                              aria-label="Delete"
+                              icon={<DeleteIcon />}
+                              size="xs"
+                              title={`Delete '${prod.name}'`}
+                              onClick={() => {
+                                axios
+                                  .delete(`/api/v1/products/${prod.id}`)
+                                  .then((res) => {
+                                    toast({
+                                      title: "Product deletion",
+                                      description:
+                                        "The product is now deleted.",
+                                      status: "success",
+                                      duration: 9000,
+                                      isClosable: true,
+                                      position: "bottom-right",
+                                    });
+
+                                    router.reload();
+                                  })
+                                  .catch((err) => {
+                                    console.log("error in request", err);
+                                    toast({
+                                      title: "There is error while deleting.",
+                                      description: err,
+                                      status: "error",
+                                      duration: 9000,
+                                      isClosable: true,
+                                      position: "bottom-right",
+                                    });
+                                  });
+                              }}
+                            />
+                          </Td>
                           <Td>
                             <Text>{prod.id}</Text>
                           </Td>
