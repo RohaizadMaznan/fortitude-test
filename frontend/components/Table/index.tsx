@@ -134,7 +134,7 @@ const EditProduct = (props: any) => {
           isClosable: true,
           position: "bottom-right",
         });
-        router.reload(window.location.pathname);
+        router.reload();
       })
       .catch((err) => {
         console.log("error in request", err);

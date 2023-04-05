@@ -16,7 +16,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $productLimit = $request -> limit ?? 25;
+        $productLimit = $request -> limit ?? 10;
         $productList = Product::paginate($productLimit);
 
         return response()->json($productList, 200);

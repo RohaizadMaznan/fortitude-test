@@ -7,7 +7,7 @@ interface IProductFilterer {
 
 const initialState: IProductFilterer = {
   currentPage: 1,
-  limit: 5,
+  limit: 10,
 };
 
 export const productSlice = createSlice({
